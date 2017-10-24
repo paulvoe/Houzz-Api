@@ -1,13 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import pycurl
 import certifi
 import json
-from StringIO import StringIO
-# from urllib import urlencode
-# from json.encoder import JSONEncoder
-# from pyasn1.compat.octets import null
-# from dircache import cache
+from io import BytesIO
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -22,7 +17,7 @@ class HouzzApi():
         self.api_url = 'https://api.houzz.com/api?'
 
     def get(self, url):
-        buffer = StringIO()
+        buffer = BytesIO()
         c = pycurl.Curl()
         c.setopt(c.CAINFO, certifi.where())
         c.setopt(c.URL, url)
@@ -39,7 +34,7 @@ class HouzzApi():
         return buffer.getvalue()
 
     def post(self, url, data=''):
-        buffer = StringIO()
+        buffer = BytesIO()
         c = pycurl.Curl()
         c.setopt(c.CAINFO, certifi.where())
         c.setopt(c.URL, url)
@@ -48,16 +43,16 @@ class HouzzApi():
             'X-HOUZZ-API-SSL-TOKEN: ' + self.token,
             'X-HOUZZ-API-USER-NAME: ' + self.user_name,
             'X-HOUZZ-API-APP-NAME: ' + self.app_name,
-            "Content-type: text/xml"
+            'Content-type: text/xml'
         ]
         c.setopt(c.HTTPHEADER, header)
-        c.setopt(c.CUSTOMREQUEST, 'POST')
+        c.setopt(c.POST, 1)
         c.setopt(c.POSTFIELDS, data)
 
         c.setopt(c.WRITEDATA, buffer)
         c.perform()
         c.close()
-        return buffer.getvalue()
+        return buffer.getvalue().decode()
 
     def encode_response(self, response):
         tree = ET.ElementTree(ET.fromstring(response))
@@ -66,6 +61,23 @@ class HouzzApi():
         else:
             return True
 
+    def update_inventory(self, item):
+        """Docstring"""
+        url = self.api_url + 'format=xml&method=updateInventory'
+
+        p = ET.Element('UpdateInventoryRequest')
+
+        action = ET.SubElement(p, 'Action')
+        action.text = 'update'
+
+        for k in item:
+            e = ET.SubElement(p, k)
+            e.text = str(item[k])
+
+        xml_data = ET.tostring(p, encoding='utf8', method='xml')
+
+        resp = self.post(url, xml_data)
+        return self.encode_response(resp)
 
     def process_order(self, order_id):
         'Process order'
