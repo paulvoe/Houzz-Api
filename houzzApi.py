@@ -4,14 +4,15 @@ import pycurl
 import certifi
 import json
 from StringIO import StringIO
-from urllib import urlencode
-from json.encoder import JSONEncoder
-from pyasn1.compat.octets import null
-from dircache import cache
+# from urllib import urlencode
+# from json.encoder import JSONEncoder
+# from pyasn1.compat.octets import null
+# from dircache import cache
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+
 
 class HouzzApi():
     def __init__(self, token, user_name, app_name):
@@ -30,7 +31,7 @@ class HouzzApi():
             'X-HOUZZ-API-SSL-TOKEN: ' + self.token,
             'X-HOUZZ-API-USER-NAME: ' + self.user_name,
             'X-HOUZZ-API-APP-NAME: ' + self.app_name
-            ]
+        ]
         c.setopt(c.HTTPHEADER, header)
         c.setopt(c.WRITEDATA, buffer)
         c.perform()
@@ -48,7 +49,7 @@ class HouzzApi():
             'X-HOUZZ-API-USER-NAME: ' + self.user_name,
             'X-HOUZZ-API-APP-NAME: ' + self.app_name,
             "Content-type: text/xml"
-            ]
+        ]
         c.setopt(c.HTTPHEADER, header)
         c.setopt(c.CUSTOMREQUEST, 'POST')
         c.setopt(c.POSTFIELDS, data)
@@ -111,5 +112,3 @@ class HouzzApi():
 
         body = self.get(url)
         return body
-
-
